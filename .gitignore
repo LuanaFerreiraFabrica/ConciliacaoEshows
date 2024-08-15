@@ -1,0 +1,5 @@
+# Except for the config.toml file
+!.streamlit/config.toml
+
+# Specifically ignore the secrets.toml file
+.streamlit/secrets.toml
