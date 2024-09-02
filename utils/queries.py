@@ -111,3 +111,37 @@ def GET_PAGAMENTOS_PROPOSTAS(data_inicio, data_fim):
     AND tp.DATA_PAGAMENTO >= '{data_inicio}'
     AND tp.DATA_PAGAMENTO <= '{data_fim}'
 ''')
+
+
+def GET_ESTORNOS(data_inicio, data_fim):
+  return dataframe_query("grupoe", f'''
+  SELECT
+    tcie.ID as 'tcie_ID',
+    tcie.DATA_PAGAMENTO as 'Data_Pagamento',
+    tcp.DESCRICAO as 'Classificacao',
+    tcie.DESCRICAO as 'Descricao_Custo',
+    tcie.VALOR as 'Valor_Estornos'
+  FROM T_CUSTOS_INTERNOS_ESHOWS tcie
+  INNER JOIN T_CLASSIFICACAO_PRIMARIA tcp ON (tcie.FK_CLASSIFICACAO_PRIMARIA = tcp.ID)
+  WHERE tcp.ID = 129
+    AND tcie.DATA_PAGAMENTO >= '{data_inicio}'
+    AND tcie.DATA_PAGAMENTO <= '{data_fim}'
+  ORDER BY tcie.DATA_PAGAMENTO ASC;
+''')
+
+
+def GET_PROBLEMAS_OPERACIONAIS(data_inicio, data_fim):
+  return dataframe_query("grupoe", f'''
+  SELECT
+    tcie.ID as 'tcie_ID',
+    tcie.DATA_PAGAMENTO as 'Data_Pagamento',
+    tcp.DESCRICAO as 'Classificacao',
+    tcie.DESCRICAO as 'Descricao_Custo',
+    tcie.VALOR as 'Valor_Problemas_Operacionais'
+  FROM T_CUSTOS_INTERNOS_ESHOWS tcie
+  INNER JOIN T_CLASSIFICACAO_PRIMARIA tcp ON (tcie.FK_CLASSIFICACAO_PRIMARIA = tcp.ID)
+  WHERE tcp.ID = 108
+    AND tcie.DATA_PAGAMENTO >= '{data_inicio}'
+    AND tcie.DATA_PAGAMENTO <= '{data_fim}'
+  ORDER BY tcie.DATA_PAGAMENTO ASC;
+''')

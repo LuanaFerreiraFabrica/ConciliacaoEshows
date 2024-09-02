@@ -12,8 +12,11 @@ st.set_page_config(
   page_icon='💎',
   initial_sidebar_state="collapsed"
 )
-config_sidebar()
 
+if 'loggedIn' not in st.session_state or not st.session_state['loggedIn']:
+  st.switch_page('Inicio.py')
+
+config_sidebar()
 
 col, col2, col3 = st.columns([6, 3, 3])
 with col:
@@ -41,22 +44,51 @@ extratoTransfeeraGrouped = extrato_transfeera.groupby('Data_Pagamento')['Valor_P
 pagamentosPropostasGrouped = pagamentos_propostas.groupby('Data_Pagamento')['Valor_Pagamento_Proposta'].sum().reset_index()
 
 
-dfMergedTransfeera = pd.merge(extratoTransfeeraGrouped, pagamentosPropostasGrouped, on = 'Data_Pagamento', how = 'outer')
-dfMergedTransfeera[['Valor_Pagamento_Transfeera', 'Valor_Pagamento_Proposta']] = dfMergedTransfeera[['Valor_Pagamento_Transfeera', 'Valor_Pagamento_Proposta']].fillna(0)
-dfMergedTransfeera['Valor_Pagamento_Proposta'] = dfMergedTransfeera['Valor_Pagamento_Proposta'].astype(float)
-dfMergedTransfeera['Valor_Pagamento_Transfeera'] = dfMergedTransfeera['Valor_Pagamento_Transfeera'].astype(float)
-dfMergedTransfeera['Diferença'] = dfMergedTransfeera['Valor_Pagamento_Proposta'] - dfMergedTransfeera['Valor_Pagamento_Transfeera']
+estornos = GET_ESTORNOS(data_inicio, data_fim)
+problemasOperacionais = GET_PROBLEMAS_OPERACIONAIS(data_inicio, data_fim)
 
+estornosGrouped = estornos.groupby('Data_Pagamento')['Valor_Estornos'].sum().reset_index()
+problemasOperacionaisGrouped = problemasOperacionais.groupby('Data_Pagamento')['Valor_Problemas_Operacionais'].sum().reset_index()
+
+def config_merged_transfeera(df1, df2):
+  dfMergedTransfeera = pd.merge(df1, df2, on = 'Data_Pagamento', how = 'outer')
+  dfMergedTransfeera[['Valor_Pagamento_Transfeera', 'Valor_Pagamento_Proposta']] = dfMergedTransfeera[['Valor_Pagamento_Transfeera', 'Valor_Pagamento_Proposta']].fillna(0)
+  dfMergedTransfeera['Valor_Pagamento_Proposta'] = dfMergedTransfeera['Valor_Pagamento_Proposta'].astype(float)
+  dfMergedTransfeera['Valor_Pagamento_Transfeera'] = dfMergedTransfeera['Valor_Pagamento_Transfeera'].astype(float)
+  dfMergedTransfeera['Diferença Inicial'] = dfMergedTransfeera['Valor_Pagamento_Proposta'] - dfMergedTransfeera['Valor_Pagamento_Transfeera']
+  return dfMergedTransfeera
+
+dfMergedTransfeera = config_merged_transfeera(extratoTransfeeraGrouped, pagamentosPropostasGrouped)
+dfMergedEstornosPO = pd.merge(estornosGrouped, problemasOperacionaisGrouped, on = 'Data_Pagamento', how = 'outer')
+dfMergedFinal = pd.merge(dfMergedTransfeera, dfMergedEstornosPO, on = 'Data_Pagamento', how = 'outer')
+
+dfMergedFinal[['Valor_Estornos', 'Valor_Problemas_Operacionais']] = dfMergedFinal[['Valor_Estornos', 'Valor_Problemas_Operacionais']].fillna(0)
+dfMergedFinal['Valor_Estornos'] = dfMergedFinal['Valor_Estornos'].astype(float)
+dfMergedFinal['Valor_Problemas_Operacionais'] = dfMergedFinal['Valor_Problemas_Operacionais'].astype(float)
+dfMergedFinal['Diferença Final'] = dfMergedFinal['Diferença Inicial'] + dfMergedFinal['Valor_Estornos'] + dfMergedFinal['Valor_Problemas_Operacionais']
 
 
 extrato_transfeera = format_columns_brazilian(extrato_transfeera, ['Valor_Pagamento_Transfeera'])
 pagamentos_propostas = format_columns_brazilian(pagamentos_propostas, ['Valor_Pagamento_Proposta'])
-dfMergedTransfeera = format_columns_brazilian(dfMergedTransfeera, ['Valor_Pagamento_Transfeera', 'Valor_Pagamento_Proposta', 'Diferença'])
+dfMergedFinal = format_columns_brazilian(dfMergedFinal, ['Valor_Pagamento_Transfeera', 'Valor_Pagamento_Proposta', 'Diferença Inicial', 
+                                                         'Valor_Estornos', 'Valor_Problemas_Operacionais', 'Diferença Final'])
+
+
+extrato_transfeera = format_date_brazilian(extrato_transfeera, 'Data_Pagamento')
+pagamentos_propostas = format_date_brazilian(pagamentos_propostas, 'Data_Pagamento')
+dfMergedFinal = format_date_brazilian(dfMergedFinal, 'Data_Pagamento')
+
 
 
 with st.container(border=True):
-  st.subheader('Diferença EPM vs Transfeera')
-  st.dataframe(dfMergedTransfeera, hide_index=True)
+  st.subheader('Conciliação EPM, Transfeera, Estornos e Problemas Operacionais')
+  st.dataframe(dfMergedFinal, hide_index=True)
+with st.container(border=True):
+  st.subheader('Estornos')
+  st.dataframe(estornos, hide_index=True)
+with st.container(border=True):
+  st.subheader('Problemas Operacionais')
+  st.dataframe(problemasOperacionais, hide_index=True)
 with st.container(border=True):
   st.subheader('Extrato Transfeera')
   st.dataframe(extrato_transfeera, hide_index=True)

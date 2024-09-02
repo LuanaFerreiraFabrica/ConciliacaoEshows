@@ -12,6 +12,10 @@ st.set_page_config(
   page_icon='💎',
   initial_sidebar_state="collapsed"
 )
+
+if 'loggedIn' not in st.session_state or not st.session_state['loggedIn']:
+  st.switch_page('Inicio.py')
+
 config_sidebar()
 
 col, col2, col3 = st.columns([6, 3, 3])
