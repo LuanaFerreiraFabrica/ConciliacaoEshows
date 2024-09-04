@@ -128,6 +128,7 @@ def GET_ESTORNOS(data_inicio, data_fim):
   WHERE tcp.ID = 129
     AND tcie.DATA_PAGAMENTO >= '{data_inicio}'
     AND tcie.DATA_PAGAMENTO <= '{data_fim}'
+    AND tcie.FK_CONTA_BANCARIA = 100
   ORDER BY tcie.DATA_PAGAMENTO ASC;
 ''')
 
@@ -145,5 +146,6 @@ def GET_PROBLEMAS_OPERACIONAIS(data_inicio, data_fim):
   WHERE tcp.ID = 108
     AND tcie.DATA_PAGAMENTO >= '{data_inicio}'
     AND tcie.DATA_PAGAMENTO <= '{data_fim}'
+    AND tcie.FK_CONTA_BANCARIA = 100
   ORDER BY tcie.DATA_PAGAMENTO ASC;
 ''')
