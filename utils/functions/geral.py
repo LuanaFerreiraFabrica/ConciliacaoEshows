@@ -11,11 +11,9 @@ def config_sidebar():
 
 
 def format_brazilian(num):
-  try:
-    num = float(num)
-    return f"{num:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
-  except (ValueError, TypeError):
-    return num
+    if pd.isnull(num):
+        return None  # Ou np.nan, caso prefira manter como NaN
+    return f"{num:,.2f}".replace('.', ',')
 
 def format_columns_brazilian(df, numeric_columns):
   for col in numeric_columns:

@@ -90,7 +90,7 @@ def GET_EXTRATO_TRANSFEERA(data_inicio, data_fim):
   	tcp.ID_TRANSACAO AS ID_Transacao_Transfeera,
   	tcp.VALOR_PAGAMENTO AS Valor_Pagamento_Transfeera,
   	tcp.ID_INTEGRACAO AS Beneficiado,
-  	tcp.CONTA AS Conta_beneficiado
+  	tcp.CONTA AS Conta_Beneficiado
   FROM T_CONCILIACAO_PAGAMENTOS tcp
   WHERE tcp.DATA_PAGAMENTO >= '{data_inicio}'
     AND tcp.DATA_PAGAMENTO <= '{data_fim}'

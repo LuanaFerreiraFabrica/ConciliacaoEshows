@@ -68,21 +68,35 @@ dfMergedFinal['Valor_Problemas_Operacionais'] = dfMergedFinal['Valor_Problemas_O
 dfMergedFinal['Diferença Final'] = dfMergedFinal['Diferença Inicial'] + dfMergedFinal['Valor_Estornos'] + dfMergedFinal['Valor_Problemas_Operacionais']
 
 
+
+pagamentos_propostas_grouped = pagamentos_propostas.groupby(['Data_Pagamento', 'Conta_Beneficiado'], as_index=False).agg({
+  'Valor_Pagamento_Proposta': 'sum',
+})
+diferencas_valores = pd.merge(extrato_transfeera, pagamentos_propostas_grouped, on = ['Data_Pagamento', 'Conta_Beneficiado'], how = 'outer')
+
+diferencas_valores = diferencas_valores[diferencas_valores.isnull().any(axis=1)]
+
 extrato_transfeera = format_columns_brazilian(extrato_transfeera, ['Valor_Pagamento_Transfeera'])
 pagamentos_propostas = format_columns_brazilian(pagamentos_propostas, ['Valor_Pagamento_Proposta'])
 dfMergedFinal = format_columns_brazilian(dfMergedFinal, ['Valor_Pagamento_Transfeera', 'Valor_Pagamento_Proposta', 'Diferença Inicial', 
                                                          'Valor_Estornos', 'Valor_Problemas_Operacionais', 'Diferença Final'])
+diferencas_valores = format_columns_brazilian(diferencas_valores, ['Valor_Pagamento_Proposta'])
+
 
 
 extrato_transfeera = format_date_brazilian(extrato_transfeera, 'Data_Pagamento')
 pagamentos_propostas = format_date_brazilian(pagamentos_propostas, 'Data_Pagamento')
 dfMergedFinal = format_date_brazilian(dfMergedFinal, 'Data_Pagamento')
+diferencas_valores = format_date_brazilian(diferencas_valores, 'Data_Pagamento')
 
 
 
 with st.container(border=True):
   st.subheader('Conciliação EPM, Transfeera, Estornos e Problemas Operacionais')
   st.dataframe(dfMergedFinal, hide_index=True)
+with st.container(border=True):
+  st.subheader('Diferenças Detalhadas')
+  st.dataframe(diferencas_valores, hide_index=True)
 with st.container(border=True):
   st.subheader('Estornos')
   st.dataframe(estornos, hide_index=True)
